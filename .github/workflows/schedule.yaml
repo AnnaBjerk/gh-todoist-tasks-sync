@@ -1,0 +1,37 @@
+name: Synchronize Todoist
+on:
+  schedule:
+   - cron: "*/30 * * * *"
+  workflow_dispatch:
+    
+
+jobs:
+  sync_issues:
+    name: Synchronize!
+    runs-on: ubuntu-latest
+    env:
+      QUERY: archived:false sort:updated-desc assignee:AnnaBjerk updated:>2020-06-01 -label:backlog
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: gh gist view ${{ secrets.GIST_ID }} -f sync.json > ./sync.json
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Sync issues
+        id: sync
+        uses: ./
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          todoist-token: ${{ secrets.TODOIST_TOKEN }}
+          query: ${{ env.QUERY }}
+          sync-file-name: ./sync.json
+      
+      - name: Deploy
+        if: steps.sync.outputs.has-changed == 'true'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          gist_id: ${{ secrets.GIST_ID }}
+          gist_file_name: sync.json
+          file_path: ./sync.json

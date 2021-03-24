@@ -20,7 +20,7 @@ jobs:
 
       - name: Sync issues
         id: sync
-        uses: ./
+        uses: cobraz/todoist-action@v1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           todoist-token: ${{ secrets.TODOIST_TOKEN }}
